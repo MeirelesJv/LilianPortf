@@ -18,7 +18,11 @@ const Project = connection.define('Project', {
         type: sequelize.STRING,
         allowNull: false
     },
-})
+    DataProject: {
+        type: sequelize.STRING,
+        allowNull: false
+    }
+});
 
 Project.sync({ force: false }).then(() => { });
 module.exports = Project;
