@@ -6,7 +6,15 @@ const Project = connection.define('Project', {
         type: sequelize.STRING,
         allowNull: false
     },
+    NameIng: {
+        type: sequelize.STRING,
+        allowNull: false
+    },
     Text: {
+        type: sequelize.STRING,
+        allowNull: false
+    },
+    TextIng: {
         type: sequelize.STRING,
         allowNull: false
     },
@@ -19,7 +27,7 @@ const Project = connection.define('Project', {
         allowNull: false
     },
     DataProject: {
-        type: sequelize.STRING,
+        type: sequelize.DATE,
         allowNull: false
     }
 });
