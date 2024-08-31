@@ -1,11 +1,12 @@
 const express = require("express");
 const router = express.Router();
-const project = require("../../database/projects");
+const keys = require("../../keys");
+const project = require("../../database/project");
 const homeBase = require("../../database/home");
-const JWTSecret = require("jsonwebtoken");
 const authToken = require("../../middleware/authToken");
+const jwt = require("jsonwebtoken")
 
-const userADM = "vZaVbQVr"
+var JWTSecret = keys.JWTSecret
 
 router.get("/", async (req, res) => {
     try {
@@ -15,7 +16,7 @@ router.get("/", async (req, res) => {
         res.status(200);
     } catch (error) {
         res.status(500);
-        res.json({ message: "Erro interno" + error });
+        res.json({ message: "Erro interno " + error });
     }
 });
 
@@ -25,15 +26,15 @@ router.get("/login", async (req, res) => {
     //Valida se a senha não veio undefined
     if (password != undefined) {
         //valida se a senha é igual a registrada 
-        if (password === userADM) {
+        if (password === keys.userADM) {
             //retorna o token se estiver tudo certo
             try {
-                var token = jwt.sign(JWTSecret, { expiresIn: '1h' });
+                var token = jwt.sign({},JWTSecret, { expiresIn: '1h' });
                 res.status(200);
                 res.json({ token: token })
             } catch (error) {
                 res.status(500);
-                res.json({ message: "Erro interno" })
+                res.json({ message: "Erro interno " + error })
             }
         } else {
             res.status(401);
@@ -43,7 +44,6 @@ router.get("/login", async (req, res) => {
         res.status(401);
         res.json({ message: "Senha inválida" })
     }
-
 });
 
 router.post("/project", authToken, async (req, res) => {
@@ -63,7 +63,7 @@ router.post("/project", authToken, async (req, res) => {
         res.status(200);
     } catch (error) {
         res.status(500);
-        res.json({ message: "Erro interno" + error });
+        res.json({ message: "Erro interno " + error });
     }
 
 })
