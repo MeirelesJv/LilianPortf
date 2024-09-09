@@ -1,16 +1,12 @@
 const sequelize = require("sequelize");
 const connection = require("./database");
 
-const Project = connection.define('Project', {
-    Name: {
+const Experience = connection.define('Experience', {
+    Position: {
         type: sequelize.STRING,
         allowNull: false
     },
-    NameIng: {
-        type: sequelize.STRING,
-        allowNull: false
-    },
-    Text: {
+    TextPort: {
         type: sequelize.STRING,
         allowNull: false
     },
@@ -22,11 +18,11 @@ const Project = connection.define('Project', {
         type: sequelize.STRING,
         allowNull: false
     },
-    DataProject: {
-        type: sequelize.DATEONLY,
+    Route: {
+        type: sequelize.STRING,
         allowNull: false
-    }
-});
+    },
+})
 
-Project.sync({ force: false }).then(() => { });
-module.exports = Project;
+Experience.sync({ force: false }).then(() => { });
+module.exports = Experience;

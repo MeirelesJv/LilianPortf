@@ -4,9 +4,11 @@ const keys = require("../../keys");
 const project = require("../../database/project");
 const homeBase = require("../../database/home");
 const authToken = require("../../middleware/authToken");
-const jwt = require("jsonwebtoken")
-
-var JWTSecret = keys.JWTSecret
+const jwt = require("jsonwebtoken");
+const upload = require("../../middleware/multer");
+const { where } = require("sequelize");
+const path = require("path")
+const fs = require("fs")
 
 router.get("/", async (req, res) => {
     try {
@@ -29,7 +31,7 @@ router.get("/login", async (req, res) => {
         if (password === keys.userADM) {
             //retorna o token se estiver tudo certo
             try {
-                var token = jwt.sign({},JWTSecret, { expiresIn: '1h' });
+                var token = jwt.sign({}, keys.JWTSecret, { expiresIn: '1h' });
                 res.status(200);
                 res.json({ token: token })
             } catch (error) {
@@ -46,26 +48,62 @@ router.get("/login", async (req, res) => {
     }
 });
 
-router.post("/project", authToken, async (req, res) => {
-    let { name, nameing, text, texting, imgfile, route, dataproject } = req.body
+router.post("/home", async (req,res) =>{
 
-    try {
-        await project.create({
-            Name: name,
-            NameIng: nameing,
-            Text: text,
-            TextIng: texting,
-            ImgFile: imgfile,
-            Route: route,
-            DataProject: dataproject
-        });
+});
 
-        res.status(200);
-    } catch (error) {
+router.post("/project", [authToken, upload.single('file')], async (req, res) => {
+    let { name, nameing, text, texting, dataproject } = req.body
+    let file = req.file
+
+    project.create({
+        Name: name,
+        NameIng: nameing,
+        Text: text,
+        TextIng: texting,
+        ImgFile: file.filename,
+        DataProject: dataproject
+    }).then(() => {
+        return res.status(200).json({message: "Succes"});
+    }).catch(error => {
         res.status(500);
         res.json({ message: "Erro interno " + error });
+    })
+
+});
+
+router.delete("/project/:id", authToken, async (req, res) => {
+
+    let id = req.params.id
+    let projeto = await project.findOne({ where: { id: id } });
+    let pastaDoProjeto = __dirname;
+    let caminhoFoto = path.join(pastaDoProjeto, '../../upload/' + projeto.ImgFile)
+
+    if (projeto != undefined && projeto != null) {
+
+        project.destroy({ where: { id: id, } })
+            .then(() => {
+                fs.unlink(caminhoFoto, (err) => {
+                    if (err) {
+                        res.json({ message: err })
+                    } else {
+                        return res.status(200).json({ message: "Succes" });
+                    }
+                });
+            })
+            .catch(erro => {
+                res.status(500);
+                res.json({ message: "Erro interno " + erro });
+            })
+
+    } else {
+        res.status(500);
+        res.json({ message: "Projeto não encontrado " });
     }
 
-})
+
+});
+
+
 
 module.exports = router;

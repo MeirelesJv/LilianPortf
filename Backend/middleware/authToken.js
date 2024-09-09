@@ -1,15 +1,19 @@
 const jwt = require('jsonwebtoken');
-const key = require("../Keys");
-const JWTSecret = key.JWTSecret
+const keys = require("../keys");
+const JWTSecret = keys.JWTSecret
 
 function authJWT(req, res, next) {
-    const authToken = req.body.token
-    if (authToken != undefined) {
+    const authToken = req.headers['authorization']
 
-        jwt.verify(authToken, JWTSecret, (err, data) => {
+    let separar = authToken.split(' ')
+    let token = separar[1]
+
+    if (token != undefined) {
+        
+        jwt.verify(token, JWTSecret, (err, data) => {
             if (err) {
-                res.status(500)
-                res.json({ message: "Erro interno" });
+                res.status(401)
+                res.json({ message: "Token Invalido! " + err });
             } else {
                 next();
             }
