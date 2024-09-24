@@ -6,7 +6,11 @@ const Experience = connection.define('Experience', {
         type: sequelize.STRING,
         allowNull: false
     },
-    TextPort: {
+    PositionIng: {
+        type: sequelize.STRING,
+        allowNull: false
+    },
+    Text: {
         type: sequelize.STRING,
         allowNull: false
     },
@@ -14,11 +18,11 @@ const Experience = connection.define('Experience', {
         type: sequelize.STRING,
         allowNull: false
     },
-    ImgFile: {
+    Logo: {
         type: sequelize.STRING,
         allowNull: false
     },
-    Route: {
+    ImgFile: {
         type: sequelize.STRING,
         allowNull: false
     },

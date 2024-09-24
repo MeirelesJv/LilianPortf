@@ -2,19 +2,27 @@ const sequelize = require("sequelize");
 const connection = require("./database");
 
 const Home = connection.define('Home', {
-    Text1: {
+    TextOne: {
         type: sequelize.STRING,
         allowNull: false
     },
-    Text2: {
+    TextOneIng: {
+        type: sequelize.STRING,
+        allowNull: false
+    },
+    TextTwo: {
+        type: sequelize.STRING,
+        allowNull: false
+    },
+    TextTwoIng: {
+        type: sequelize.STRING,
+        allowNull: false
+    },
+    Base: {
         type: sequelize.STRING,
         allowNull: false
     },
     ImgFile: {
-        type: sequelize.STRING,
-        allowNull: false
-    },
-    Route: {
         type: sequelize.STRING,
         allowNull: false
     },

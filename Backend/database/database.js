@@ -1,7 +1,7 @@
 const sequelize = require("sequelize");
 const key = require('../Keys');
 
-const connection = new sequelize('LilianPort','teste',key.databasePassword,{
+const connection = new sequelize(key.database,key.databaseLogin,key.databasePassword,{
     host: 'localhost',
     dialect: 'mssql',
     timezone: '-03:00',
