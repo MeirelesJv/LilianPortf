@@ -1,5 +1,5 @@
 const sequelize = require("sequelize");
-const key = require('../Keys');
+const key = require('../keys');
 
 const connection = new sequelize(key.database,key.databaseLogin,key.databasePassword,{
     host: 'localhost',
