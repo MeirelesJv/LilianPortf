@@ -10,7 +10,7 @@ const upload = require("../../middleware/multer");
 const path = require("path")
 const fs = require("fs");
 
-//Rota para pegar Tabelas  ✓
+//Rota para pegar Tabelas
 router.get("/", async (req, res) => {
     try {
         let projects = await project.findAll();
@@ -23,7 +23,7 @@ router.get("/", async (req, res) => {
     }
 });
 
-//Pegar o token para edição ✓
+//Pegar o token para edição
 router.get("/login", async (req, res) => {
     let { password } = req.body
 
@@ -46,7 +46,7 @@ router.get("/login", async (req, res) => {
     }
 });
 
-//Rota de update da tabela Home ✓
+//Rota de update da tabela Home
 router.post("/home/edit", (req, res) => {
     let {textone, textoneing, texttwo, texttwoing}  = req.body
     
@@ -68,7 +68,7 @@ router.post("/home/edit", (req, res) => {
 
 });
 
-//Rota de update da foto principal ✓
+//Rota de update da foto principal
 router.post("/home/file", [authToken, upload.single('file')], async (req, res) => {
 
     let home = await homeBase.findOne({where: {Base: 'base'}});
@@ -92,7 +92,7 @@ router.post("/home/file", [authToken, upload.single('file')], async (req, res) =
 
 });
 
-//Rota de criação de um projeto  ✓
+//Rota de criação de um projeto 
 router.post("/project", [authToken, upload.single('file')], async (req, res) => {
     let { name, nameing, text, texting, dataproject } = req.body
     let file = req.file
@@ -113,7 +113,7 @@ router.post("/project", [authToken, upload.single('file')], async (req, res) => 
 
 });
 
-//Rota de edição de um projeto ✓
+//Rota de edição de um projeto
 router.post("/project/:id", authToken, async (req, res) => {
     let idProject = req.params.id;
     let { name, nameing, text, texting, dataproject } = req.body
@@ -141,7 +141,7 @@ router.post("/project/:id", authToken, async (req, res) => {
         
 });
 
-//Rota de edição da foto de um projeto ✓
+//Rota de edição da foto de um projeto
 router.post("/project/file/:id", [authToken, upload.single('file')], async (req, res) => {
     let idProject = req.params.id;
 
@@ -173,7 +173,7 @@ router.post("/project/file/:id", [authToken, upload.single('file')], async (req,
 
 });
 
-//Rota de deleção de um projeto ✓
+//Rota de deleção de um projeto
 router.delete("/project/:id", authToken, async (req, res) => {
 
     let id = req.params.id
@@ -204,7 +204,7 @@ router.delete("/project/:id", authToken, async (req, res) => {
 
 });
 
-//Rota de Criação de experience ✓
+//Rota de Criação de experience
 router.post("/experience", [upload.fields([{ name: 'logo', maxCount: 1 }, { name: 'file', maxCount: 1 },]), authToken], async (req, res) => {
     let { position, positionIng, text, textIng, } = req.body
     let { logo, file } = req.files
@@ -307,7 +307,7 @@ router.post("/experience/file/:id", [upload.fields([{ name: 'logo', maxCount: 1 
 
 });
 
-//Rota de deleção de uma experience ✓
+//Rota de deleção de uma experience
 router.delete("/experience/:id", authToken, async (req, res) => {
 
     let id = req.params.id
