@@ -25,7 +25,7 @@ router.get("/", async (req, res) => {
 });
 
 //Pegar o token para edição
-router.get("/login", async (req, res) => {
+router.post("/login", async (req, res) => {
     let { password } = req.body
 
     //Valida se a senha não veio undefined
