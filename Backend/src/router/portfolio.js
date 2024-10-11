@@ -35,7 +35,7 @@ router.post("/login", async (req, res) => {
             //retorna o token se estiver tudo certo
             try {
                 var token = jwt.sign({}, keys.JWTSecret, { expiresIn: '1h' });
-                return res.status(200).json({ token: token });
+                return res.status(201).json({ token: token });
             } catch (error) {
                 return res.status(500).json({ message: "Erro interno " + error });
             }
@@ -107,7 +107,7 @@ router.post("/project", [authToken, upload.single('fileProject')], async (req, r
         DataProject: dataproject
 
     }).then(() => {
-        return res.status(200).json({ message: "Succes" });
+        return res.status(201).json({ message: "Created" });
     }).catch(error => {
         fs.unlink(caminhoNovaFoto, (err) => {
             if (err) { console.error('Erro ao excluir o arquivo:', err) }
@@ -222,7 +222,7 @@ router.post("/experience", [upload.fields([{ name: 'logoExperience', maxCount: 1
         ImgFile: fileExperience[0].filename,
 
     }).then(() => {
-        return res.status(200).json({ message: "Succes" });
+        return res.status(201).json({ message: "Created" });
     }).catch(error => {
         return res.status(500).json({ message: "Erro interno " + error });
     })
