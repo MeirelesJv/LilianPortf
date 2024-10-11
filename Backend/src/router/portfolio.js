@@ -9,6 +9,7 @@ const jwt = require("jsonwebtoken");
 const upload = require("../../middleware/multer");
 const path = require("path")
 const fs = require("fs");
+const { where } = require("sequelize");
 
 //Rota para pegar Tabelas
 router.get("/", async (req, res) => {
@@ -19,7 +20,7 @@ router.get("/", async (req, res) => {
         res.json({ projects, home, experiences });
         return res.status(200)
     } catch (error) {
-        return res.status(500).json({ message: "Erro Interno"  + error});
+        return res.status(500).json({ message: "Erro Interno" + error });
     }
 });
 
@@ -34,68 +35,68 @@ router.get("/login", async (req, res) => {
             //retorna o token se estiver tudo certo
             try {
                 var token = jwt.sign({}, keys.JWTSecret, { expiresIn: '1h' });
-                return res.status(200).json({ token:token });
+                return res.status(200).json({ token: token });
             } catch (error) {
                 return res.status(500).json({ message: "Erro interno " + error });
             }
         } else {
-            return res.status(401).json({ message: "Senha inválida"});
+            return res.status(401).json({ message: "Senha inválida" });
         }
     } else {
-        return res.status(401).json({ message: "Senha inválida"});
+        return res.status(401).json({ message: "Senha inválida" });
     }
 });
 
 //Rota de update da tabela Home
-router.post("/home/edit", (req, res) => {
-    let {textone, textoneing, texttwo, texttwoing}  = req.body
-    
-    if(textone != undefined){
+router.patch("/home/edit", authToken, async (req, res) => {
+    let { textone, textoneing, texttwo, texttwoing } = req.body
+
+    if (textone != undefined) {
         homeBase.update({
             TextOne: textone,
             TextOneIng: textoneing,
-            TextTwo: texttwo, 
+            TextTwo: texttwo,
             TextTwoIng: texttwoing,
-    
-        },{where: {Base: 'base'}}).then(() => {
+
+        }, { where: {} }).then(() => {
             return res.status(200).json({ message: "Succes" });
         }).catch(error => {
             return res.status(500).json({ message: "Erro interno " + error });
         })
-    }else{
+    } else {
         return res.status(500).json({ message: "Dados Inválidos " });
     }
 
 });
 
 //Rota de update da foto principal
-router.post("/home/file", [authToken, upload.single('file')], async (req, res) => {
+router.patch("/home/file", [authToken, upload.single('fileHome')], async (req, res) => {
 
-    let home = await homeBase.findOne({where: {Base: 'base'}});
-    let pastaDoProjeto = __dirname;
-    let caminhoFoto = path.join(pastaDoProjeto, '../../upload/' + home.ImgFile)
+    let home = await homeBase.findOne({ where: {} });
+    let caminhoFoto = path.join(__dirname, '../../upload/' + home.ImgFile)
 
     homeBase.update({
         ImgFile: req.file.filename,
-    },{where: {Base: 'base'}})
-    .then(() => {
-        fs.unlink(caminhoFoto, (err) => {
-            if (err) {
-                res.json({ message: err })
-            } else {
-                return res.status(200).json({ message: "Succes" });
-            }
-        });
-    }).catch(error => {
-        return res.status(500).json({ message: "Erro interno " + error });
-    })
+    }, { where: {} })
+        .then(() => {
+            fs.unlink(caminhoFoto, (err) => {
+                if (err) {
+                    res.json({ message: err })
+                } else {
+                    return res.status(200).json({ message: "Succes" });
+                }
+            });
+        }).catch(error => {
+            return res.status(500).json({ message: "Erro interno " + error });
+        })
 
 });
 
 //Rota de criação de um projeto 
-router.post("/project", [authToken, upload.single('file')], async (req, res) => {
+router.post("/project", [authToken, upload.single('fileProject')], async (req, res) => {
     let { name, nameing, text, texting, dataproject } = req.body
     let file = req.file
+    let caminhoNovaFoto = path.join(__dirname, '../../upload/' + req.file.filename)
 
     project.create({
         Name: name,
@@ -108,80 +109,84 @@ router.post("/project", [authToken, upload.single('file')], async (req, res) => 
     }).then(() => {
         return res.status(200).json({ message: "Succes" });
     }).catch(error => {
+        fs.unlink(caminhoNovaFoto, (err) => {
+            if (err) { console.error('Erro ao excluir o arquivo:', err) }
+        });
         return res.status(500).json({ message: "Erro interno " + error });
     })
 
 });
 
 //Rota de edição de um projeto
-router.post("/project/:id", authToken, async (req, res) => {
+router.patch("/project/:id", authToken, async (req, res) => {
     let idProject = req.params.id;
     let { name, nameing, text, texting, dataproject } = req.body
 
-    if(text != undefined){
+    let projectValid = await project.findOne({ where: { id: idProject } })
+
+    if (projectValid != undefined) {
         project.update({
             Name: name,
             NameIng: nameing,
             Text: text,
             TextIng: texting,
             DataProject: dataproject
-
-        }, {
-            where: {
-                id: idProject
-            }
-        }).then(() => {
-            return res.status(200).json({ message: "Succes" });
-        }).catch(error => {
-            return res.status(500).json({ message: "Erro interno " + error });
-        })
-    }else{
-        return res.status(500).json({ message: "Dados Inválidos " + error });
+        }, { where: { id: idProject } })
+            .then(() => {
+                return res.status(200).json({ message: "Succes" });
+            }).catch(error => {
+                return res.status(500).json({ message: "Erro interno " + error });
+            })
+    } else {
+        return res.status(404).json({ message: " Projeto não encontrado " });
     }
-        
 });
 
 //Rota de edição da foto de um projeto
-router.post("/project/file/:id", [authToken, upload.single('file')], async (req, res) => {
+router.patch("/project/file/:id", [authToken, upload.single('fileProject')], async (req, res) => {
     let idProject = req.params.id;
 
     let projeto = await project.findOne({ where: { id: idProject } });
-    let pastaDoProjeto = __dirname;
-    let caminhoFoto = path.join(pastaDoProjeto, '../../upload/' + projeto.ImgFile)
+    let caminhoNovaFoto = path.join(__dirname, '../../upload/' + req.file.filename)
 
-    if (projeto != undefined && projeto != null) {
+    if (projeto != undefined) {
+        let caminhoFoto = path.join(__dirname, '../../upload/' + projeto.ImgFile)
 
         project.update({
             ImgFile: req.file.filename,
-        },{ where: { id: idProject, } })
-        .then(() => {
-            fs.unlink(caminhoFoto, (err) => {
-                if (err) {
-                    res.json({ message: err })
-                } else {
-                    return res.status(200).json({ message: "Succes" });
-                }
-            });
-        })
-        .catch(error => {
-            return res.status(500).json({ message: "Erro interno " + error });
-        })
+        }, { where: { id: idProject, } })
+            .then(() => {
+                fs.unlink(caminhoFoto, (err) => {
+                    if (err) {
+                        res.json({ message: err })
+                    } else {
+                        return res.status(200).json({ message: "Succes" });
+                    }
+                });
+            })
+            .catch(error => {
+                fs.unlink(caminhoNovaFoto, (err) => {
+                    if (err) { console.error('Erro ao excluir o arquivo:', err) }
+                });
+                return res.status(500).json({ message: "Erro interno " + error });
+            })
 
     } else {
+        fs.unlink(caminhoNovaFoto, (err) => {
+            if (err) { console.error('Erro ao excluir o arquivo:', err) }
+        });
         return res.status(404).json({ message: "Projeto não encontrado " });
     }
 
 });
 
-//Rota de deleção de um projeto
+//Rota de delete de um projeto
 router.delete("/project/:id", authToken, async (req, res) => {
-
     let id = req.params.id
     let projeto = await project.findOne({ where: { id: id } });
-    let pastaDoProjeto = __dirname;
-    let caminhoFoto = path.join(pastaDoProjeto, '../../upload/' + projeto.ImgFile)
 
     if (projeto != undefined && projeto != null) {
+        let caminhoFoto = path.join(__dirname, '../../upload/' + projeto.ImgFile);
 
         project.destroy({ where: { id: id, } })
             .then(() => {
@@ -201,21 +206,20 @@ router.delete("/project/:id", authToken, async (req, res) => {
         return res.status(404).json({ message: "Projeto não encontrado" });
     }
 
-
 });
 
 //Rota de Criação de experience
-router.post("/experience", [upload.fields([{ name: 'logo', maxCount: 1 }, { name: 'file', maxCount: 1 },]), authToken], async (req, res) => {
+router.post("/experience", [upload.fields([{ name: 'logoExperience', maxCount: 1 }, { name: 'fileExperience', maxCount: 1 },]), authToken], async (req, res) => {
     let { position, positionIng, text, textIng, } = req.body
-    let { logo, file } = req.files
+    let { logoExperience, fileExperience } = req.files
 
     experience.create({
         Position: position,
         PositionIng: positionIng,
         Text: text,
         TextIng: textIng,
-        Logo: logo[0].filename,
-        ImgFile: file[0].filename,
+        Logo: logoExperience[0].filename,
+        ImgFile: fileExperience[0].filename,
 
     }).then(() => {
         return res.status(200).json({ message: "Succes" });
@@ -226,71 +230,49 @@ router.post("/experience", [upload.fields([{ name: 'logo', maxCount: 1 }, { name
 });
 
 //Rota de Edição de experience
-router.post("/experience/:id", authToken, async (req, res) => {
+router.patch("/experience/:id", authToken, async (req, res) => {
     let { id } = req.params
     let { position, positionIng, text, textIng, } = req.body
 
-    if(text != undefined){
+    let experienceValid = await experience.findOne({ where: { id: id } })
+
+    if (experienceValid != undefined) {
         experience.update({
             Position: position,
             PositionIng: positionIng,
             Text: text,
             TextIng: textIng,
-    
+
         }, { where: { id: id } })
-        .then(() => {
-            return res.status(200).json({ message: "Succes" });
-        }).catch(error => {
-            return res.status(500).json({ message: "Erro interno " + error });
-        })
-    }else{
-        return res.status(400).json({ message: "Dados Inválidos " });
+            .then(() => {
+                return res.status(200).json({ message: "Succes" });
+            }).catch(error => {
+                return res.status(500).json({ message: "Erro interno " + error });
+            })
+    } else {
+        return res.status(404).json({ message: "Experience não encontrada" });
     }
 });
 
 //Rota de edição da foto de experience
-router.post("/experience/file/:id", [upload.fields([{ name: 'logo', maxCount: 1 }, { name: 'file', maxCount: 1 },]), authToken], async (req, res) => {
+router.patch("/experience/file/:id", [upload.fields([{ name: 'logoExperience', maxCount: 1 }, { name: 'fileExperience', maxCount: 1 },]), authToken], async (req, res) => {
     let { id } = req.params
-    let { logo, file } = req.files
+    let { logoExperience, fileExperience } = req.files
 
-    let expe = await experience.findOne({ where: { id: id } });
-    let pastaDoProjeto = __dirname;
+    let experienceValid = await experience.findOne({ where: { id: id } });
 
     try {
 
-        if(expe != undefined){
-            if (logo) {
-                let caminhoFotoLogo = path.join(pastaDoProjeto, '../../upload/' + expe.ImgFile)
+        if (experienceValid != undefined) {
+            if (logoExperience) {
+                let caminhoFotoLogo = path.join(__dirname, '../../upload/' + experienceValid.Logo)
                 experience.update({
-                    ImgFile: logo[0].filename,
-                },
-                    { where: { id: id, } })
-                    .then(() => {
-                        fs.unlink(caminhoFotoLogo, (err) => {
-                            if (err) {
-                                res.json({ message: err })
-                            } else {
-                                return res.status(200).json({ message: "Succes" });
-                            }
-                        });
-                    })
-                    .catch(error => {
-                        return res.status(500).json({ message: "Erro interno " + error });
-                    })
-            }
-
-            if (file) {
-                let caminhoFotoLogo = path.join(pastaDoProjeto, '../../upload/' + expe.ImgFile)
-                experience.update({
-                    ImgFile: file[0].filename,
-                },
-                { where: { id: id, } })
+                    Logo: logoExperience[0].filename,
+                },{ where: { id: id, } })
                 .then(() => {
                     fs.unlink(caminhoFotoLogo, (err) => {
                         if (err) {
                             res.json({ message: err })
-                        } else {
-                            return res.status(200).json({ message: "Succes" });
                         }
                     });
                 })
@@ -298,48 +280,76 @@ router.post("/experience/file/:id", [upload.fields([{ name: 'logo', maxCount: 1 
                     return res.status(500).json({ message: "Erro interno " + error });
                 })
             }
-        }else{
+
+            if (fileExperience) {
+                let caminhoFotoFile = path.join(__dirname, '../../upload/' + experienceValid.ImgFile)
+                experience.update({
+                    ImgFile: fileExperience[0].filename,
+                },{ where: { id: id}})
+                .then(() => {
+                    fs.unlink(caminhoFotoFile, (err) => {
+                        if (err) {
+                            res.json({ message: err })
+                        }
+                    });
+                })
+                .catch(error => {
+                    return res.status(500).json({ message: "Erro interno " + error });
+                })
+            }
+
+            return res.status(200).json({ message: "Succes" });
+        } else {
+            if(logoExperience){
+                let caminhoNovaFotoLogo = path.join(__dirname, '../../upload/' + logoExperience[0].filename)
+                fs.unlink(caminhoNovaFotoLogo, (err) => {
+                    if (err) { console.error('Erro ao excluir o arquivo:', err) }
+                });
+            }
+            if(fileExperience){
+                let caminhoNovaFotoFile = path.join(__dirname, '../../upload/' + fileExperience[0].filename)
+                fs.unlink(caminhoNovaFotoFile, (err) => {
+                    if (err) { console.error('Erro ao excluir o arquivo:', err) }
+                });
+            }
             return res.status(404).json({ message: "Experiencia não encontrada" });
         }
     } catch (error) {
         return res.status(500).json({ message: "Erro interno " + error });
     }
-
 });
 
 //Rota de deleção de uma experience
 router.delete("/experience/:id", authToken, async (req, res) => {
-
     let id = req.params.id
-    let expe = await experience.findOne({ where: { id: id } });
-    let pastaDoProjeto = __dirname;
-    let caminhoFoto = path.join(pastaDoProjeto, '../../upload/' + expe.ImgFile)
-    let caminhoLogo = path.join(pastaDoProjeto, '../../upload/' + expe.Logo)
+    let experienceValid = await experience.findOne({ where: { id: id }});
 
-    if (expe != undefined && expe != null) {
+    if (experienceValid != undefined) {
+        let caminhoFoto = path.join(__dirname, '../../upload/' + experienceValid.ImgFile)
+        let caminhoLogo = path.join(__dirname, '../../upload/' + experienceValid.Logo)
 
         experience.destroy({ where: { id: id, } })
-            .then(() => {
-                fs.unlink(caminhoFoto, (err) => {
-                    if (err) {
-                        res.json({ message: err })
-                    } else {
-                        fs.unlink(caminhoLogo, (err) => {
-                            if (err) {
-                                res.json({ message: err })
-                            } else {
-                                return res.status(200).json({ message: "Succes" });
-                            }
-                        });
-                    }
-                });
-            })
-            .catch(error => {
-                return res.status(500).json({ message: "Erro interno " + error });
-            })
+        .then(() => {
+            fs.unlink(caminhoFoto, (err) => {
+                if (err) {
+                    res.json({ message: err })
+                } else {
+                    fs.unlink(caminhoLogo, (err) => {
+                        if (err) {
+                            res.json({ message: err })
+                        } else {
+                            return res.status(200).json({ message: "Succes" });
+                        }
+                    });
+                }
+            });
+        })
+        .catch(error => {
+            return res.status(500).json({ message: "Erro interno " + error });
+        })
 
     } else {
-        return res.status(404).json({ message: "Projeto não encontrado"});
+        return res.status(404).json({ message: "Projeto não encontrado" });
     }
 });
 

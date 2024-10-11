@@ -18,10 +18,6 @@ const Home = connection.define('Home', {
         type: sequelize.STRING,
         allowNull: false
     },
-    Base: {
-        type: sequelize.STRING,
-        allowNull: false
-    },
     ImgFile: {
         type: sequelize.STRING,
         allowNull: false

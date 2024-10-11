@@ -20,3 +20,9 @@ app.use("/", portfolio);
 
 const cors = require("cors")
 app.use(cors())
+
+const path = require('path');
+app.use('/upload', express.static(path.join(__dirname, 'upload')));
+
+//insert into LilianPort..Homes (TextOne,TextOneIng,TextTwo,TextTwoIng,ImgFile,createdAt,updatedAt)
+//values ('aa','bb','cc','dd','ee',GETDATE(),GETDATE())
