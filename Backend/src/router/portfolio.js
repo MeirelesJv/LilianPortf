@@ -49,14 +49,14 @@ router.post("/login", async (req, res) => {
 
 //Rota de update da tabela Home
 router.patch("/home/edit", authToken, async (req, res) => {
-    let { textone, textoneing, texttwo, texttwoing } = req.body
+    let { textOne, textOneIng, textTwo, textTwoIng } = req.body
 
-    if (textone != undefined) {
+    if (textOne != undefined) {
         homeBase.update({
-            TextOne: textone,
-            TextOneIng: textoneing,
-            TextTwo: texttwo,
-            TextTwoIng: texttwoing,
+            TextOne: textOne,
+            TextOneIng: textOneIng,
+            TextTwo: textTwo,
+            TextTwoIng: textTwoIng,
 
         }, { where: {} }).then(() => {
             return res.status(200).json({ message: "Succes" });
@@ -94,17 +94,17 @@ router.patch("/home/file", [authToken, upload.single('fileHome')], async (req, r
 
 //Rota de criação de um projeto 
 router.post("/project", [authToken, upload.single('fileProject')], async (req, res) => {
-    let { name, nameing, text, texting, dataproject } = req.body
+    let { name, nameIng, text, textIng, dataProject } = req.body
     let file = req.file
     let caminhoNovaFoto = path.join(__dirname, '../../upload/' + req.file.filename)
 
     project.create({
         Name: name,
-        NameIng: nameing,
+        NameIng: nameIng,
         Text: text,
-        TextIng: texting,
+        TextIng: textIng,
         ImgFile: file.filename,
-        DataProject: dataproject
+        DataProject: dataProject
 
     }).then(() => {
         return res.status(201).json({ message: "Created" });
@@ -120,17 +120,17 @@ router.post("/project", [authToken, upload.single('fileProject')], async (req, r
 //Rota de edição de um projeto
 router.patch("/project/:id", authToken, async (req, res) => {
     let idProject = req.params.id;
-    let { name, nameing, text, texting, dataproject } = req.body
+    let { name, namIng, text, textIng, dataProject } = req.body
 
     let projectValid = await project.findOne({ where: { id: idProject } })
 
     if (projectValid != undefined) {
         project.update({
             Name: name,
-            NameIng: nameing,
+            NameIng: namIng,
             Text: text,
-            TextIng: texting,
-            DataProject: dataproject
+            TextIng: textIng,
+            DataProject: dataProject
         }, { where: { id: idProject } })
             .then(() => {
                 return res.status(200).json({ message: "Succes" });
